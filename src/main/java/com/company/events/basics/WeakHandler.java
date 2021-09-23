@@ -39,4 +39,19 @@ public abstract class WeakHandler extends BasicHandler {
         );
         return registeredListeners.values();
     }
+
+    /**
+     * @see WeakHashMap#clear()
+     */
+    @Override
+    public void clearAllListeners() {
+        listenerMap.clear();
+    }
+
+    public int getNumberOfListeners(){
+        return listenerMap.values().stream().mapToInt(WeakHashMap::size).sum();
+    }
+    public int getNumberOfTargets(){
+        return listenerMap.keySet().size();
+    }
 }
