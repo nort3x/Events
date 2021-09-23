@@ -71,9 +71,7 @@ public class EventTest {
                 .forEach(num -> h.addListener(
                                 new Listener<AtomicInteger>(
                                         EventTest.class,
-                                        event -> {
-                                            event.getData().incrementAndGet();
-                                        }
+                                        event -> event.getData().incrementAndGet()
                                 )
                         )
                 );
@@ -109,9 +107,7 @@ public class EventTest {
                 .mapToObj(num -> h.addListener(
                                 new Listener<AtomicInteger>(
                                         EventTest.class,
-                                        event -> {
-                                            event.getData().incrementAndGet();
-                                        }
+                                        event -> event.getData().incrementAndGet()
                                 )
                         )
                 ).collect(Collectors.toList());
@@ -144,9 +140,7 @@ public class EventTest {
                 .forEach(num -> h.addListener(
                                 new Listener<AtomicInteger>(
                                         obj,
-                                        event -> {
-                                            event.getData().incrementAndGet();
-                                        }
+                                        event -> event.getData().incrementAndGet()
                                 )
                         )
                 );
@@ -252,7 +246,7 @@ public class EventTest {
 
         System.out.println(h.getNumberOfListeners());
         Assertions.assertTrue(h.getNumberOfListeners() < 1000);
-        Assertions.assertEquals(0, h.getNumberOfTargets());
+        Assertions.assertEquals(1, h.getNumberOfTargets());
 
     }
 

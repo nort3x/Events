@@ -11,24 +11,32 @@ import java.util.*;
 @SuppressWarnings("rawtypes")
 public abstract class WeakHandler extends BasicHandler {
 
-    Map<Object, WeakHashMap<Token, IListener>> listenerMap = Collections.synchronizedMap(new WeakHashMap<>());
+
+    // outer map is synchronized
+    final private Map<Object, WeakHashMap<Token, IListener>> listenerMap = new WeakHashMap<>();
 
     @Override
-    public <DataType> Token<DataType> addListener(IListener<DataType> listener) {
-        Token<DataType> t = new Token<>(listener, this);
-        listenerMap.computeIfAbsent(
-                listener.getObservationTarget(),
-                givenObservationTarget -> new WeakHashMap<>()
-        ).put(t, listener);
-        return t;
+    public  <DataType> Token<DataType> addListener(IListener<DataType> listener) {
+        synchronized (listenerMap) {
+            Token<DataType> t = new Token<>(listener, this);
+            listenerMap.computeIfAbsent(
+                    listener.getObservationTarget(),
+                    givenObservationTarget -> new WeakHashMap<>() // inner map is not
+            ).put(t, listener);
+            return t;
+        }
     }
 
     @Override
     public void removeListener(Token token) {
-        listenerMap.computeIfAbsent(
-                token.getCorrespondingListener().getObservationTarget(),
-                givenObservationTarget -> new WeakHashMap<>()
-        ).remove(token);
+        synchronized (listenerMap) {
+            WeakHashMap<Token, IListener> map = listenerMap.get(token.getCorrespondingListener().getObservationTarget());
+            if (map != null) {
+                map.remove(token);
+                if (map.size() == 0)
+                    listenerMap.remove(token.getCorrespondingListener().getObservationTarget());
+            }
+        }
     }
 
     @Override
@@ -44,14 +52,17 @@ public abstract class WeakHandler extends BasicHandler {
      * @see WeakHashMap#clear()
      */
     @Override
-    public void clearAllListeners() {
-        listenerMap.clear();
+    public  void clearAllListeners() {
+        synchronized (listenerMap) {
+            listenerMap.clear();
+        }
     }
 
-    public int getNumberOfListeners(){
+    public int getNumberOfListeners() {
         return listenerMap.values().stream().mapToInt(WeakHashMap::size).sum();
     }
-    public int getNumberOfTargets(){
+
+    public int getNumberOfTargets() {
         return listenerMap.keySet().size();
     }
 }
